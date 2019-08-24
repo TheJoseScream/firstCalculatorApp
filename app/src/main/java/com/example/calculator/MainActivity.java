@@ -37,15 +37,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private TextView calcScreen;
     private TextView resutlScreen;
-    private double calculator;
+
     private String operator;
-    private String lastNumber;
-
     private ArrayList<String> history;
-
     private String currentNumber;
-    private String prevNumber;
-    private double results;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +56,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         operator="";
 
         currentNumber="";
-        prevNumber="";
-        results=0;
 
         history=new ArrayList();
+        history.add("");
 
         for (int id :btnIDS){
             Button temp=findViewById(id);
@@ -80,31 +74,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (btnID){
             case R.id.btn_AC:{
+                history.clear();
+                history.add("");
+
                 calcScreen.setText("");
                 resutlScreen.setText("");
                 operator="";
 
                 currentNumber="";
-                prevNumber="";
-                results=0;
                 break;
             }
             case R.id.btn_plus:{
-                history.add(currentNumber);
-                history.add("+");
+                if(history.size()>0 && !history.get(0).equals("")){
+                    history.add("+");
+                    history.add("");
 
-                operator="SUM";
-                currentNumber="";
-                prevNumber=""+(int) results;
+                    operator="SUM";
+                    currentNumber="";
 
-                System.out.println(operator);
-                calcScreen.setText(calcScreen.getText().toString()+"+");
+                    System.out.println(operator);
+                    calcScreen.setText(calcScreen.getText().toString()+"+");
+                }
                 break;
             }
             case R.id.btn_minus:{
-                operator="MIN";
-                System.out.println(operator);
-                calcScreen.setText(calcScreen.getText().toString()+"-");
+                if(history.size()>0 && !history.get(0).equals("")){
+                    history.add("-");
+                    history.add("");
+
+                    currentNumber="";
+                    operator="MIN";
+                    System.out.println(operator);
+                    calcScreen.setText(calcScreen.getText().toString()+"-");
+                }else{
+                    currentNumber="-";
+                    calcScreen.setText(calcScreen.getText().toString()+"-");
+                    System.out.println(currentNumber);
+                }
                 break;
             }
             case R.id.btn_multiply:{
@@ -120,34 +126,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.btn_percent:{
-//                operator="PER";
-                System.out.println(operator);
+                System.out.println("del");
                 if(!currentNumber.isEmpty()){
                     currentNumber=currentNumber.replaceFirst(".$","");
                     calcScreen.setText(calcScreen.getText().toString().replaceFirst(".$",""));
-                    resutlScreen.setText("");
                 }else{
                     if(history!=null && !history.isEmpty()){
-                        if(isNumeric(history.get(history.size()-1))){
-                            System.out.println("numeric");
+                        history.remove(history.size()-1);
+
+                        if(!isNumeric(history.get(history.size()-1))){
+                            history.remove(history.size()-1);
+                            currentNumber=history.get(history.size()-1);
                         }else{
-                            if(history.size()>=3){
-                                System.out.println("NaN");
-                                history.remove(history.size()-1);
-                                currentNumber=history.get(history.size()-1);
-                                history.remove(history.size()-1);
-                                prevNumber=history.get(history.size()-2);
-                            }else if(history.size()<3){
-                                System.out.println("NaN2");
-                                history.remove(history.size()-1);
-                                currentNumber=history.get(history.size()-1);
-                            }
+                            System.out.println("es un numero");
                         }
                         calcScreen.setText(calcScreen.getText().toString().replaceFirst(".$",""));
-                        resutlScreen.setText("");
                     }
                 }
-
+                calculator();
                 break;
             }
             case R.id.btn_dot:{
@@ -172,36 +168,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void concat(double number){
         currentNumber=currentNumber+(int) number;
-    }
+        history.set(history.size()-1,currentNumber);
 
-    private void calculate(double number){
-        currentNumber=currentNumber+(int) number;
-        if(operator.isEmpty()){
-            calcScreen.setText(calcScreen.getText().toString()+(int) number);
-            results=Double.parseDouble(currentNumber);
-            System.out.println(results);
-            resutlScreen.setText(""+(int) results);
+        for (String log : history) {
+            System.out.println(log+" este es el log concat");
         }
-        if(operator.equals("SUM")){
-            System.out.println(prevNumber+"+"+currentNumber);
-            results=Double.parseDouble(prevNumber)+Double.parseDouble(currentNumber);
-            System.out.println(results);
-            calcScreen.setText(calcScreen.getText().toString()+(int) number);
-            resutlScreen.setText(""+(int) results);
-        }
+        calcScreen.setText(calcScreen.getText().toString()+(int) number);
     }
 
     public void calculator(){
-        double res=0;
+        System.out.println("calculando");
         double calc=0;
         double tmp=0;
-        String data="";
-        String action="";
-        for(int i=0; i<history.size(); i++){
-            if(history.size()>=2){
-                System.out.println("es mayor a 3");
+
+        if(history.get(0)!=null){
+            calc = Double.parseDouble(history.get(0));
+        }
+
+        for(int i=0; i<history.size(); i++) {
+            if (history.size() >= 2) {
+                if (history.get(i).equals("+")) {
+                    tmp = Double.parseDouble(history.get(i + 1));
+                    calc += tmp;
+                }
+                if (history.get(i).equals("-")) {
+                    tmp = Double.parseDouble(history.get(i + 1));
+                    calc -= tmp;
+                }
             }
         }
+        resutlScreen.setText(""+(int) calc);
     }
 
     public static boolean isNumeric(String strNum) {
